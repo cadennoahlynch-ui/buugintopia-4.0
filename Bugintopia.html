@@ -23345,6 +23345,653 @@ console.log('  wipeaccounts → clear all');
 
 })();
 </script>
+<script>
+// ============================================================
+// HTZ-ONLY LOCK — Bob Jr unlocks ONLY with the code "HTZ"
+// Disables: 🐌 emoji, 🐚 emoji, corner snail button,
+//           bobjr, itz, snail, snailson, bobsupreme, bobpowers
+// ============================================================
+(function(){
+'use strict';
+if (window.__htzOnly) return;
+window.__htzOnly = true;
+
+console.log('%c🔒 HTZ-ONLY LOCK LOADING...', 'color:#ffd700;font-weight:bold;font-size:15px');
+
+// ============================================================
+// 1. NEUTRALIZE ALL EMOJI UNLOCK PATHS
+// ============================================================
+// Remove any corner snail buttons that were added by earlier patches
+['snail-supreme-btn','emoji-unlock-btn','bobjr-emoji-btn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+});
+
+// Override the snail emoji check so it never matches
+window.__isSnailEmoji = function(){ return false; };
+
+// Kill listeners that were registered for snail emoji by re-binding
+// a capture-phase blocker that swallows paste/beforeinput of 🐌 / 🐚
+document.addEventListener('paste', function(e){
+    const t = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    const norm = String(t).replace(/\uFE0F/g,'').replace(/\u200D/g,'').trim();
+    // If user pasted a snail/shell, swallow it so no patch can see it
+    if (norm.includes('🐌') || norm.includes('🐚')){
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        if (window.flash) window.flash('🚫 Bob Jr is HTZ-only');
+        if (window.showToast) window.showToast('🚫 Bob Jr unlocks only with HTZ', 'warn', '🔒');
+    }
+}, true);
+
+document.addEventListener('beforeinput', function(e){
+    if (!e.data) return;
+    const norm = String(e.data).replace(/\uFE0F/g,'').replace(/\u200D/g,'').trim();
+    if (norm.includes('🐌') || norm.includes('🐚')){
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        if (window.flash) window.flash('🚫 Bob Jr is HTZ-only');
+    }
+}, true);
+
+// Also block the "input" event (in case a patch reads it)
+document.addEventListener('input', function(e){
+    const t = e.target;
+    if (!t) return;
+    const val = (t.value || t.textContent || '').toString();
+    const norm = val.replace(/\uFE0F/g,'').replace(/\u200D/g,'').trim();
+    if (norm.includes('🐌') || norm.includes('🐚')){
+        t.value = '';
+        if (window.flash) window.flash('🚫 Bob Jr is HTZ-only');
+    }
+}, true);
+
+// ============================================================
+// 2. OVERRIDE THE UNLOCK FUNCTION
+// ============================================================
+// Every previous patch defined either:
+//   window.__unlockBobJrSupreme  (from "Bob Jr Supreme" patch)
+//   window.__unlockBobJr         (from "Bob Jr — OP Snail" patch)
+//   window.unlockBobJr           (original)
+// We replace ALL of them with a version that does nothing,
+// so no other patch can grant Bob Jr regardless of what it does.
+
+function noUnlock(reason){
+    if (window.flash) window.flash('🔒 Bob Jr unlocks only with HTZ');
+    if (window.showToast) window.showToast('🔒 HTZ is the only Bob Jr code', 'warn', '🔒');
+    console.log('[HTZ-Only] Blocked unlock attempt: ' + (reason || 'unknown'));
+    return false;
+}
+
+// Override any named unlocker
+window.__unlockBobJrSupreme = function(){ return noUnlock('__unlockBobJrSupreme'); };
+window.__unlockBobJr = function(){ return noUnlock('__unlockBobJr'); };
+window.unlockBobJr = function(){ return noUnlock('unlockBobJr'); };
+window.unlockBobJrSupreme = function(){ return noUnlock('unlockBobJrSupreme'); };
+
+// ============================================================
+// 3. THE REAL UNLOCK — HTZ only
+// ============================================================
+function realUnlockHTZ(){
+    if (!window.state) return false;
+
+    // Make sure Bob Jr exists in BASE_BUGS
+    if (window.BASE_BUGS && Array.isArray(window.BASE_BUGS)){
+        if (!window.BASE_BUGS.find(b => b.id === 'bobjr')){
+            window.BASE_BUGS.push({
+                id: 'bobjr', name: 'Bob Jr',
+                body: '#d4a850', accent: '#c8c8d8', eye: '#ff2020',
+                power: 'Son Power', hidden: true, secret: true,
+                bob: true, snail: true, drawnSnail: true, god: true, allPowers: true
+            });
+        }
+        // Ensure secondary jobs exist
+        if (window.SECONDARY && !window.SECONDARY.bobjr){
+            window.SECONDARY.bobjr = [
+                'SON OF TIME','SON OF SPACE','SON OF LIFE','SON OF DEATH',
+                'SON OF WAR','SON OF PEACE','SON OF LIGHT','SON OF DARK',
+                'SON OF CHAOS','SON OF ORDER','SON OF DREAMS','SON OF BOB'
+            ];
+        }
+    }
+
+    // Unlock
+    if (!window.state.unlockedBugs) window.state.unlockedBugs = [];
+    if (!window.state.unlockedBugs.includes('bobjr')){
+        window.state.unlockedBugs.push('bobjr');
+        try {
+            localStorage.setItem('bugintopia3_secrets',
+                JSON.stringify({ unlockedBugs: window.state.unlockedBugs }));
+        } catch(e){}
+    }
+
+    // Select him
+    window.state.selectedBug = 'bobjr';
+    const jobs = window.SECONDARY && window.SECONDARY.bobjr;
+    if (jobs && jobs.length && (!window.state.secondaryJob || !jobs.includes(window.state.secondaryJob))){
+        window.state.secondaryJob = 'SON OF BOB';
+    }
+
+    // Rebuild menu
+    if (window.buildMenu) try { window.buildMenu(); } catch(e){}
+    if (window.buildSecondaryButtons) try { window.buildSecondaryButtons(); } catch(e){}
+
+    if (window.flash) window.flash('🐌 BOB JR — HTZ ACCEPTED');
+    if (window.showToast) window.showToast('🐌 Bob Jr unlocked via HTZ', 'bob', '🐌');
+    if (typeof window.glitchScreen === 'function') try { window.glitchScreen(1.0); } catch(e){}
+    if (window.state){
+        window.state.screenFlash = 0.9;
+        window.state.shakeTime = 1.0;
+        window.state.shakeMagnitude = 20;
+    }
+
+    console.log('%c✅ BOB JR UNLOCKED (HTZ)', 'color:#4f4;font-weight:bold;font-size:14px');
+    return true;
+}
+
+// ============================================================
+// 4. HOOK THE CHEAT CONSOLE — HTZ only
+// ============================================================
+setTimeout(() => {
+    const orig = window.runCheat;
+    if (typeof orig !== 'function') return;
+
+    window.runCheat = function(input){
+        const cmd = (input || '').trim().toLowerCase();
+
+        // ---------- HTZ = UNLOCK ----------
+        if (cmd === 'htz'){
+            realUnlockHTZ();
+            return;
+        }
+
+        // ---------- Everything else that used to unlock Bob Jr → blocked ----------
+        if (cmd === 'bobjr' || cmd === 'itz' || cmd === 'snail' ||
+            cmd === 'snailson' || cmd === 'bobsupreme' ||
+            cmd === 'bobjunior' || cmd === 'bobpowers' ||
+            cmd === 'unlockbobjr'){
+            if (window.addCheatLog) window.addCheatLog('🔒 Bob Jr unlocks only with HTZ', 'err');
+            noUnlock('cheat "' + cmd + '"');
+            return;
+        }
+
+        return orig.call(this, input);
+    };
+
+    console.log('%c✅ Cheat console hooked — HTZ only', 'color:#4f4;font-weight:bold');
+}, 2000);
+
+// ============================================================
+// 5. TYPED-ON-MENU DETECTION — HTZ only
+// ============================================================
+// If a player types HTZ on the menu (outside any input field),
+// unlock Bob Jr. Any other buffer that would previously trigger
+// a snail/emoji unlock is ignored (handled above by the swallow).
+let buffer = '';
+let bufferTimer = null;
+
+window.addEventListener('keydown', e => {
+    const menu = document.getElementById('menu');
+    if (!menu || menu.classList.contains('hidden')) return;
+    if (!window.state || window.state.started) return;
+
+    // Ignore if typing in an input
+    const a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
+
+    if (e.key.length === 1 && /[a-z]/i.test(e.key)){
+        buffer += e.key.toLowerCase();
+        if (buffer.length > 12) buffer = buffer.slice(-12);
+
+        clearTimeout(bufferTimer);
+        bufferTimer = setTimeout(() => { buffer = ''; }, 1500);
+
+        if (buffer.endsWith('htz')){
+            realUnlockHTZ();
+            buffer = '';
+        }
+    }
+}, true);
+
+// ============================================================
+// 6. BLOCK BOB JR FROM BEING UNLOCKED BY THE OLD LOCALSTORAGE PATH
+// ============================================================
+// Earlier patches saved 'bugintopia3_secrets' with unlockedBugs
+// that may already include 'bobjr' from a previous session.
+// If you want HTZ-only STRICTLY, wipe that on load so only a
+// fresh HTZ will restore him.
+// (Comment out the block below if you want to KEEP prior unlocks.)
+try {
+    const raw = localStorage.getItem('bugintopia3_secrets');
+    if (raw){
+        const j = JSON.parse(raw);
+        if (Array.isArray(j.unlockedBugs)){
+            j.unlockedBugs = j.unlockedBugs.filter(id => id !== 'bobjr');
+            localStorage.setItem('bugintopia3_secrets', JSON.stringify(j));
+        }
+    }
+} catch(e){}
+
+// Also strip 'bobjr' from the live state so it doesn't sneak through
+setTimeout(() => {
+    if (window.state && Array.isArray(window.state.unlockedBugs)){
+        const i = window.state.unlockedBugs.indexOf('bobjr');
+        if (i >= 0){
+            window.state.unlockedBugs.splice(i, 1);
+            if (window.buildMenu) try { window.buildMenu(); } catch(e){}
+        }
+    }
+}, 500);
+
+// ============================================================
+// 7. HINT ON MENU
+// ============================================================
+setTimeout(() => {
+    const menu = document.getElementById('menu');
+    if (!menu) return;
+    if (document.getElementById('htz-hint')) return;
+    const hint = document.createElement('div');
+    hint.id = 'htz-hint';
+    hint.style.cssText = 'color:#666;font-size:10px;margin-top:8px;letter-spacing:3px;text-align:center;font-family:Courier New';
+    hint.textContent = '· · ·  o n e   c o d e   r e m a i n s  · · ·';
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn && startBtn.parentNode){
+        startBtn.parentNode.insertBefore(hint, startBtn.nextSibling);
+    }
+}, 4000);
+
+// ============================================================
+// 8. DIAGNOSTIC
+// ============================================================
+setTimeout(() => {
+    const orig = window.runCheat;
+    if (typeof orig !== 'function') return;
+    window.runCheat = function(input){
+        const cmd = (input || '').trim().toLowerCase();
+        if (cmd === 'htzdiag'){
+            if (window.addCheatLog){
+                window.addCheatLog('══ HTZ-ONLY DIAG ══', 'ok');
+                window.addCheatLog('Bob Jr in BASE_BUGS: ' + !!(window.BASE_BUGS||[]).find(b=>b.id==='bobjr'), 'ok');
+                window.addCheatLog('Bob Jr unlocked: ' + !!(window.state && window.state.unlockedBugs.includes('bobjr')), 'ok');
+                window.addCheatLog('Emoji unlock: DISABLED', 'ok');
+                window.addCheatLog('Corner button: REMOVED', 'ok');
+                window.addCheatLog('Valid code: HTZ', 'ok');
+                window.addCheatLog('Type "htz" on menu or in console', 'ok');
+            }
+            return;
+        }
+        return orig.call(this, input);
+    };
+}, 3000);
+
+console.log('%c════════════════════════════════════════════════', 'color:#ffd700;font-weight:bold');
+console.log('%c🔒 HTZ-ONLY LOCK ACTIVE', 'color:#ffd700;font-weight:bold;font-size:14px');
+console.log('%c════════════════════════════════════════════════', 'color:#ffd700;font-weight:bold');
+console.log('');
+console.log('Bob Jr unlock methods now BLOCKED:');
+console.log('  🐌 emoji paste');
+console.log('  🐚 shell emoji paste');
+console.log('  Corner snail button');
+console.log('  Cheats: bobjr, itz, snail, snailson, bobsupreme, bobpowers');
+console.log('  Old localStorage unlock (wiped)');
+console.log('');
+console.log('ONLY WORKING CODE: HTZ');
+console.log('');
+console.log('How to use:');
+console.log('  Type H, T, Z on the menu screen (not in an input)');
+console.log('  OR open cheat console (`) and type: htz');
+console.log('');
+console.log('Diag: "htzdiag" in cheat console');
+
+})();
+</script>
+<script>
+// ============================================================
+// LEVEL SAVE FIX — XP is now saved to the account and restored
+// Auto-saves every 15 seconds + on every level up + on XP gain
+// ============================================================
+(function(){
+'use strict';
+if (window.__levelSaveFix) return;
+window.__levelSaveFix = true;
+
+console.log('%c💾 LEVEL SAVE FIX LOADING...', 'color:#ffd700;font-weight:bold;font-size:15px');
+
+// ============================================================
+// 1. GET THE SAFE STORAGE (from storage fix) OR FALL BACK
+// ============================================================
+function store(){
+    return window.__SAFE || window.localStorage;
+}
+
+function getSession(){
+    try {
+        if (window.__accounts && window.__accounts.getSession) return window.__accounts.getSession();
+        const s = store().getItem('bugintopia_session');
+        return s || null;
+    } catch(e){ return null; }
+}
+
+function saveKey(u){ return 'bugintopia_save_' + u; }
+
+function readSave(u){
+    try {
+        const raw = store().getItem(saveKey(u));
+        return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+}
+
+function writeSave(u, data){
+    try {
+        store().setItem(saveKey(u), JSON.stringify(data));
+        return true;
+    } catch(e){
+        console.error('[LevelSave] writeSave failed:', e);
+        return false;
+    }
+}
+
+// ============================================================
+// 2. ENSURE __xp EXISTS
+// ============================================================
+if (!window.__xp){
+    window.__xp = { level: 1, xp: 0, xpToNext: 100 };
+}
+
+// ============================================================
+// 3. SAVE XP TO ACCOUNT
+// ============================================================
+function saveXPToAccount(){
+    const user = getSession();
+    if (!user) return false;
+
+    const existing = readSave(user) || {};
+
+    // Snapshot the current xp
+    existing.xp = {
+        level: window.__xp.level,
+        xp: window.__xp.xp,
+        xpToNext: window.__xp.xpToNext
+    };
+
+    // Also snapshot player if a game is running
+    const p = window.P ? window.P() : null;
+    if (p){
+        existing.player = {
+            name: p.name, bugId: p.bugId,
+            primaryJob: p.primaryJob, secondaryJob: p.secondaryJob,
+            x: p.x, y: p.y, hp: p.hp, maxHp: p.maxHp,
+            food: p.food, maxFood: p.maxFood,
+            scrap: p.scrap, perks: p.perks,
+            hotbar: p.hotbar, hotbarTools: p.hotbarTools,
+            inventory: p.inventory, craftedInventory: p.craftedInventory,
+            stats: p.stats
+        };
+    }
+
+    existing.ts = Date.now();
+    const ok = writeSave(user, existing);
+    if (ok){
+        console.log('[LevelSave] ✅ Saved Lv ' + window.__xp.level + ' for ' + user);
+    }
+    return ok;
+}
+window.__saveXPToAccount = saveXPToAccount;
+
+// ============================================================
+// 4. LOAD XP FROM ACCOUNT
+// ============================================================
+function loadXPFromAccount(){
+    const user = getSession();
+    if (!user) return false;
+
+    const data = readSave(user);
+    if (!data || !data.xp) return false;
+
+    window.__xp = {
+        level: data.xp.level || 1,
+        xp: data.xp.xp || 0,
+        xpToNext: data.xp.xpToNext || 100
+    };
+
+    console.log('[LevelSave] ✅ Loaded Lv ' + window.__xp.level + ' for ' + user);
+    return true;
+}
+window.__loadXPFromAccount = loadXPFromAccount;
+
+// ============================================================
+// 5. WRAP gainXP — save after every gain
+// ============================================================
+setTimeout(() => {
+    const orig = window.gainXP;
+    if (typeof orig !== 'function' || orig._levelSaveFix) return;
+
+    window.gainXP = function(amount, reason){
+        const beforeLevel = window.__xp.level;
+        const result = orig.call(this, amount, reason);
+        // Save after every XP gain
+        saveXPToAccount();
+        // Extra feedback on level up
+        if (window.__xp.level > beforeLevel && window.showToast){
+            window.showToast('⭐ Level ' + window.__xp.level + ' saved', 'success', '⭐');
+        }
+        return result;
+    };
+    window.gainXP._levelSaveFix = true;
+    console.log('%c✅ gainXP hooked — will auto-save', 'color:#4f4;font-weight:bold');
+}, 2000);
+
+// ============================================================
+// 6. AUTO-SAVE EVERY 15 SECONDS
+// ============================================================
+setInterval(() => {
+    if (!window.state || !window.state.started) return;
+    saveXPToAccount();
+}, 15000);
+
+// ============================================================
+// 7. AUTO-LOAD XP ON LOGIN
+// ============================================================
+// When the account UI logs in, we need to load XP immediately
+setTimeout(() => {
+    if (!window.__accounts) return;
+
+    // Wrap signup/login/logout to reload XP after
+    const origLogin = window.__accounts.login;
+    const origSignup = window.__accounts.signup;
+
+    if (typeof origLogin === 'function'){
+        window.__accounts.login = function(u, p){
+            const r = origLogin(u, p);
+            if (r.ok){
+                loadXPFromAccount();
+                console.log('[LevelSave] Loaded level after login');
+            }
+            return r;
+        };
+    }
+    if (typeof origSignup === 'function'){
+        window.__accounts.signup = function(u, p){
+            const r = origSignup(u, p);
+            if (r.ok){
+                // New account = reset XP to level 1
+                window.__xp = { level: 1, xp: 0, xpToNext: 100 };
+                saveXPToAccount();
+                console.log('[LevelSave] New account — XP reset to Lv 1');
+            }
+            return r;
+        };
+    }
+    console.log('%c✅ login/signup hooked to reload XP', 'color:#4f4;font-weight:bold');
+}, 3000);
+
+// ============================================================
+// 8. AUTO-LOAD ON PAGE LOAD (if session exists)
+// ============================================================
+setTimeout(() => {
+    if (getSession()){
+        loadXPFromAccount();
+        console.log('[LevelSave] Session detected on load — XP restored');
+    }
+}, 4000);
+
+// ============================================================
+// 9. HOOK THE ACCOUNT UI SAVE BUTTON TO INCLUDE XP
+// ============================================================
+// The Account UI's own save button already includes xp,
+// but let's make sure the "save" also updates the level display
+setTimeout(() => {
+    // Refresh the account UI level display after save
+    const origOpen = window.__openAccountUI;
+    if (typeof origOpen === 'function'){
+        window.__openAccountUI = function(){
+            // Reload XP from save before showing UI
+            loadXPFromAccount();
+            return origOpen.apply(this, arguments);
+        };
+    }
+}, 4000);
+
+// ============================================================
+// 10. MANUAL "SAVE LEVEL" BUTTON IN ACCOUNT UI
+// ============================================================
+// Hook into the account UI to add a "SAVE LEVEL" button if missing
+setTimeout(() => {
+    const origOpen = window.__openAccountUI;
+    if (typeof origOpen !== 'function') return;
+    if (origOpen._hasSaveLevelBtn) return;
+
+    window.__openAccountUI = function(){
+        const r = origOpen.apply(this, arguments);
+        // After the UI renders, we can't easily inject the button,
+        // but the "SAVE GAME" button already saves xp
+        return r;
+    };
+    window.__openAccountUI._hasSaveLevelBtn = true;
+}, 5000);
+
+// ============================================================
+// 11. SAVE ON PAGE UNLOAD
+// ============================================================
+window.addEventListener('beforeunload', () => {
+    saveXPToAccount();
+});
+
+// ============================================================
+// 12. ALSO SAVE ON EVERY PLAYER STAT CHANGE (via update loop)
+// ============================================================
+// Catch any XP gains that bypass gainXP (e.g. from quests)
+let lastSavedXP = { level: 0, xp: 0 };
+setInterval(() => {
+    if (!window.state || !window.state.started) return;
+    if (!window.__xp) return;
+
+    if (window.__xp.level !== lastSavedXP.level || window.__xp.xp !== lastSavedXP.xp){
+        lastSavedXP = { level: window.__xp.level, xp: window.__xp.xp };
+        saveXPToAccount();
+    }
+}, 3000);
+
+// ============================================================
+// 13. CHEAT
+// ============================================================
+setTimeout(() => {
+    const orig = window.runCheat;
+    if (typeof orig !== 'function') return;
+    window.runCheat = function(input){
+        const cmd = (input || '').trim().toLowerCase();
+
+        if (cmd === 'savelevel' || cmd === 'savexp'){
+            const ok = saveXPToAccount();
+            if (window.addCheatLog){
+                window.addCheatLog(ok ? '✅ Level saved' : '❌ Save failed (not logged in?)', ok ? 'ok' : 'err');
+                window.addCheatLog('Current: Lv ' + window.__xp.level + ' · ' + window.__xp.xp + '/' + window.__xp.xpToNext + ' XP', 'ok');
+            }
+            return;
+        }
+        if (cmd === 'loadlevel' || cmd === 'loadxp'){
+            const ok = loadXPFromAccount();
+            if (window.addCheatLog){
+                window.addCheatLog(ok ? '✅ Level loaded' : '❌ No saved level', ok ? 'ok' : 'err');
+                window.addCheatLog('Current: Lv ' + window.__xp.level + ' · ' + window.__xp.xp + '/' + window.__xp.xpToNext + ' XP', 'ok');
+            }
+            return;
+        }
+        if (cmd === 'xpsave' || cmd === 'leveldiag'){
+            if (window.addCheatLog){
+                window.addCheatLog('══ LEVEL SAVE DIAG ══', 'ok');
+                window.addCheatLog('Session: ' + (getSession() || '(not logged in)'), 'ok');
+                window.addCheatLog('Current Lv: ' + window.__xp.level, 'ok');
+                window.addCheatLog('Current XP: ' + window.__xp.xp + '/' + window.__xp.xpToNext, 'ok');
+                const user = getSession();
+                if (user){
+                    const data = readSave(user);
+                    if (data && data.xp){
+                        window.addCheatLog('Saved Lv: ' + data.xp.level, 'ok');
+                        window.addCheatLog('Saved XP: ' + data.xp.xp + '/' + data.xp.xpToNext, 'ok');
+                        window.addCheatLog('Last saved: ' + new Date(data.ts).toLocaleString(), 'ok');
+                    } else {
+                        window.addCheatLog('No XP saved for ' + user, 'err');
+                    }
+                }
+            }
+            return;
+        }
+        if (cmd === 'setlevel'){
+            const n = parseInt((input.split(/\s+/)[1]) || '1');
+            if (!isNaN(n) && n > 0 && n < 1000){
+                window.__xp.level = n;
+                window.__xp.xp = 0;
+                window.__xp.xpToNext = Math.floor(100 * Math.pow(1.5, n - 1));
+                saveXPToAccount();
+                if (window.flash) window.flash('⭐ Level set to ' + n);
+                if (window.addCheatLog) window.addCheatLog('Level → ' + n + ' (saved)', 'ok');
+            }
+            return;
+        }
+        return orig.call(this, input);
+    };
+}, 6000);
+
+// ============================================================
+// 14. STARTUP
+// ============================================================
+setTimeout(() => {
+    if (window.showToast){
+        const user = getSession();
+        if (user){
+            window.showToast('💾 Level save enabled for ' + user, 'success', '💾');
+        } else {
+            window.showToast('💾 Level save ready (log in to save)', 'info', '💾');
+        }
+    }
+}, 7000);
+
+console.log('%c════════════════════════════════════════════════', 'color:#ffd700;font-weight:bold');
+console.log('%c✅ LEVEL SAVE FIXED', 'color:#ffd700;font-weight:bold;font-size:14px');
+console.log('%c════════════════════════════════════════════════', 'color:#ffd700;font-weight:bold');
+console.log('');
+console.log('WHY IT WASN\'T SAVING:');
+console.log('  • XP only existed in window.__xp (memory)');
+console.log('  • Nothing wrote it to bugintopia_save_<user>');
+console.log('  • Login never read it back');
+console.log('');
+console.log('WHAT THIS FIX DOES:');
+console.log('  ✅ Save XP after every gainXP()');
+console.log('  ✅ Auto-save every 15 seconds');
+console.log('  ✅ Auto-save on page close');
+console.log('  ✅ Load XP on login');
+console.log('  ✅ Load XP on page load if session exists');
+console.log('  ✅ New accounts start at level 1');
+console.log('');
+console.log('CHEATS:');
+console.log('  savelevel  → save current level');
+console.log('  loadlevel  → load level from account');
+console.log('  leveldiag  → show current + saved level');
+console.log('  setlevel 5 → set level to 5 (saved)');
+
+})();
+</script>
 </script>
 </body>
 </html>
